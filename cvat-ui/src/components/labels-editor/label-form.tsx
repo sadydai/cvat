@@ -422,6 +422,7 @@ export default class LabelForm extends React.Component<Props> {
                             onCancel();
                         }
                     }}
+                    autoComplete='off'
                 />
             </Form.Item>
         );
