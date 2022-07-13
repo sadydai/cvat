@@ -1413,7 +1413,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$260000$DevmxlmLwciP1P6sZs2Qag$U9DFtjTWx96Sk95qY6UXVcvpdQEP2LcoFBftk5D2RKY=",
-    "last_login": "2022-06-22T09:20:25.189Z",
+    "last_login": "2022-07-13T12:46:07.059Z",
     "is_superuser": true,
     "username": "admin1",
     "first_name": "Admin",
@@ -6154,7 +6154,7 @@
   "model": "engine.manifest",
   "pk": 2,
   "fields": {
-    "filename": "manifest.jsonl",
+    "filename": "sub/manifest.jsonl",
     "cloud_storage": 2
   }
 },
@@ -6184,7 +6184,7 @@
     "display_name": "Bucket 2",
     "owner": 11,
     "created_date": "2022-03-17T07:23:59.305Z",
-    "updated_date": "2022-03-17T07:23:59.309Z",
+    "updated_date": "2022-07-13T12:46:45.587Z",
     "credentials": "minio_access_key minio_secret_key",
     "credentials_type": "KEY_SECRET_KEY_PAIR",
     "specific_attributes": "endpoint_url=http%3A%2F%2Fminio%3A9000",
