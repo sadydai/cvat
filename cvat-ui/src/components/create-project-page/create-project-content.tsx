@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import React, {
-    RefObject, useContext, useEffect, useRef, useState,
+    RefObject, useContext, useRef, useState, useEffect,
 } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router';
 import Switch from 'antd/lib/switch';
 import Select from 'antd/lib/select';
@@ -17,14 +17,16 @@ import Input from 'antd/lib/input';
 import notification from 'antd/lib/notification';
 
 import patterns from 'utils/validation-patterns';
-import { CombinedState } from 'reducers/interfaces';
 import LabelsEditor from 'components/labels-editor/labels-editor';
 import { createProjectAsync } from 'actions/projects-actions';
 import CreateProjectContext from './create-project.context';
 
 const { Option } = Select;
 
-function NameConfigurationForm({ formRef }: { formRef: RefObject<FormInstance> }): JSX.Element {
+function NameConfigurationForm(
+    { formRef, inputRef }:
+    { formRef: RefObject<FormInstance>, inputRef: RefObject<Input> },
+):JSX.Element {
     return (
         <Form layout='vertical' ref={formRef}>
             <Form.Item
@@ -38,7 +40,7 @@ function NameConfigurationForm({ formRef }: { formRef: RefObject<FormInstance> }
                     },
                 ]}
             >
-                <Input />
+                <Input ref={inputRef} />
             </Form.Item>
         </Form>
     );
@@ -50,7 +52,7 @@ function AdaptiveAutoAnnotationForm({ formRef }: { formRef: RefObject<FormInstan
     return (
         <Form layout='vertical' ref={formRef}>
             <Form.Item name='project_class' hasFeedback label='Class'>
-                <Select value={projectClass.value} onChange={(v) => projectClass.set(v)}>
+                <Select value={projectClass.value} onChange={(v) => projectClass.set?.(v)}>
                     <Option value=''>--Not Selected--</Option>
                     <Option value='OD'>Detection</Option>
                 </Select>
@@ -60,7 +62,7 @@ function AdaptiveAutoAnnotationForm({ formRef }: { formRef: RefObject<FormInstan
                 <Switch
                     disabled={!projectClassesForTraining.includes(projectClass.value)}
                     checked={trainingEnabled.value}
-                    onClick={() => trainingEnabled.set(!trainingEnabled.value)}
+                    onClick={() => trainingEnabled.set?.(!trainingEnabled.value)}
                 />
             </Form.Item>
 
@@ -125,37 +127,26 @@ function AdvancedConfigurationForm({ formRef }: { formRef: RefObject<FormInstanc
 
 export default function CreateProjectContent(): JSX.Element {
     const [projectLabels, setProjectLabels] = useState<any[]>([]);
-    const shouldShowNotification = useRef(false);
     const nameFormRef = useRef<FormInstance>(null);
+    const nameInputRef = useRef<Input>(null);
     const adaptiveAutoAnnotationFormRef = useRef<FormInstance>(null);
     const advancedFormRef = useRef<FormInstance>(null);
     const dispatch = useDispatch();
     const history = useHistory();
 
-    const newProjectId = useSelector((state: CombinedState) => state.projects.activities.creates.id);
-
     const { isTrainingActive } = useContext(CreateProjectContext);
 
-    useEffect(() => {
-        if (Number.isInteger(newProjectId) && shouldShowNotification.current) {
-            const btn = <Button onClick={() => history.push(`/projects/${newProjectId}`)}>Open project</Button>;
+    const resetForm = (): void => {
+        if (nameFormRef.current) nameFormRef.current.resetFields();
+        if (advancedFormRef.current) advancedFormRef.current.resetFields();
+        setProjectLabels([]);
+    };
 
-            // Clear new project forms
-            if (nameFormRef.current) nameFormRef.current.resetFields();
-            if (advancedFormRef.current) advancedFormRef.current.resetFields();
-            setProjectLabels([]);
+    const focusForm = (): void => {
+        nameInputRef.current?.focus();
+    };
 
-            notification.info({
-                message: 'The project has been created',
-                btn,
-                className: 'cvat-notification-create-project-success',
-            });
-        }
-
-        shouldShowNotification.current = true;
-    }, [newProjectId]);
-
-    const onSumbit = async (): Promise<void> => {
+    const sumbit = async (): Promise<any> => {
         let projectData: Record<string, any> = {};
         if (nameFormRef.current && advancedFormRef.current) {
             const basicValues = await nameFormRef.current.validateFields();
@@ -174,15 +165,41 @@ export default function CreateProjectContent(): JSX.Element {
 
         projectData.labels = projectLabels;
 
-        if (!projectData.name) return;
-
-        dispatch(createProjectAsync(projectData));
+        const createdProject = await dispatch(createProjectAsync(projectData));
+        return createdProject;
     };
+
+    const onSubmitAndOpen = async (): Promise<void> => {
+        try {
+            const createdProject = await sumbit();
+            history.push(`/projects/${createdProject.id}`);
+        } catch {
+            // all hadnlers of error in onSumbit;
+        }
+    };
+
+    const onSubmitAndContinue = async (): Promise<void> => {
+        try {
+            await sumbit();
+            resetForm();
+            notification.info({
+                message: 'The project has been created',
+                className: 'cvat-notification-create-project-success',
+            });
+            focusForm();
+        } catch {
+            // all hadnlers of error in onSumbit;
+        }
+    };
+
+    useEffect(() => {
+        focusForm();
+    }, []);
 
     return (
         <Row justify='start' align='middle' className='cvat-create-project-content'>
             <Col span={24}>
-                <NameConfigurationForm formRef={nameFormRef} />
+                <NameConfigurationForm formRef={nameFormRef} inputRef={nameInputRef} />
             </Col>
             {isTrainingActive.value && (
                 <Col span={24}>
@@ -202,9 +219,18 @@ export default function CreateProjectContent(): JSX.Element {
                 <AdvancedConfigurationForm formRef={advancedFormRef} />
             </Col>
             <Col span={24}>
-                <Button type='primary' onClick={onSumbit}>
-                    Submit
-                </Button>
+                <Row justify='end' gutter={5}>
+                    <Col>
+                        <Button type='primary' onClick={onSubmitAndOpen}>
+                            Submit and Open
+                        </Button>
+                    </Col>
+                    <Col>
+                        <Button type='primary' onClick={onSubmitAndContinue}>
+                            Submit and Continue
+                        </Button>
+                    </Col>
+                </Row>
             </Col>
         </Row>
     );

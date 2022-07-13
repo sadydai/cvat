@@ -149,8 +149,10 @@ export function createProjectAsync(data: any): ThunkAction {
         try {
             const savedProject = await projectInstance.save();
             dispatch(projectActions.createProjectSuccess(savedProject.id));
+            return savedProject;
         } catch (error) {
             dispatch(projectActions.createProjectFailed(error));
+            throw error;
         }
     };
 }
