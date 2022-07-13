@@ -8,6 +8,7 @@ from io import BytesIO
 from time import sleep
 
 import pytest
+import json
 from deepdiff import DeepDiff
 from PIL import Image
 
@@ -247,7 +248,10 @@ class TestGetTaskDataset:
         self._test_export_project('admin1', task['id'], format='CVAT for images 1.1')
 
 @pytest.mark.usefixtures("changedb")
+@pytest.mark.usefixtures("restore_cvat_data")
 class TestPostTaskData:
+    _USERNAME = 'admin1'
+
     @staticmethod
     def _wait_until_task_is_created(username, task_id):
         url = f'tasks/{task_id}/status'
@@ -259,12 +263,18 @@ class TestPostTaskData:
                 return response
             sleep(1)
 
-    def _test_create_task(self, username, spec, data, files):
-        response = post_method(username, '/tasks', spec)
+    @staticmethod
+    def _get_cloud_storage_content(username, cloud_storage_id, manifest):
+        response = get_method(username, f'cloudstorages/{cloud_storage_id}/content', manifest_path=manifest)
+        data = json.loads(response.content.decode('utf-8'))
+        return data
+
+    def _test_create_task(self, username, spec, data, files, **kwargs):
+        response = post_method(username, '/tasks', spec, **kwargs)
         assert response.status_code == HTTPStatus.CREATED
         task_id = response.json()['id']
 
-        response = post_files_method(username, f'/tasks/{task_id}/data', data, files)
+        response = post_files_method(username, f'/tasks/{task_id}/data', data, files, **kwargs)
         assert response.status_code == HTTPStatus.ACCEPTED
 
         response = self._wait_until_task_is_created(username, task_id)
@@ -274,9 +284,8 @@ class TestPostTaskData:
         return task_id
 
     def test_can_create_task_with_defined_start_and_stop_frames(self):
-        username = 'admin1'
         task_spec = {
-            'name': f'test {username} to create a task with defined start and stop frames',
+            'name': f'test {self._USERNAME} to create a task with defined start and stop frames',
             "labels": [{
                 "name": "car",
                 "color": "#ff00ff"
@@ -292,9 +301,37 @@ class TestPostTaskData:
             f'client_files[{i}]': image for i, image in enumerate(generate_image_files(7))
         }
 
-        task_id = self._test_create_task(username, task_spec, task_data, task_files)
+        task_id = self._test_create_task(self._USERNAME, task_spec, task_data, task_files)
 
         # check task size
-        response = get_method(username, f'tasks/{task_id}')
+        response = get_method(self._USERNAME, f'tasks/{task_id}')
         response_json = response.json()
         assert response_json['size'] == 4
+
+    @pytest.mark.parametrize('cloud_storage_id, manifest, org', [
+        (1, 'manifest.jsonl',         ''), # public bucket
+        (2, 'sub_dir/manifest.jsonl', 'org2'), # private bucket
+    ])
+    def test_create_task_with_cloud_storage_files(self, cloud_storage_id, manifest, org):
+        cloud_storage_content = self._get_cloud_storage_content(self._USERNAME, cloud_storage_id, manifest)
+        cloud_storage_content.append(manifest)
+
+        task_spec = {
+            "name": f"Task with files from cloud storage {cloud_storage_id}",
+            "labels": [{
+                "name": "car",
+            }],
+        }
+
+        data_spec = {
+            'image_quality': 75,
+            'use_cache': True,
+            'storage': 'cloud_storage',
+            'cloud_storage_id': cloud_storage_id,
+        }
+
+        data_spec.update({
+            f'server_files[{i}]': f for i, f in enumerate(cloud_storage_content)
+        })
+
+        _ = self._test_create_task(self._USERNAME, task_spec, data_spec, None, org=org)
