@@ -33,6 +33,11 @@ def generate_image_files(count):
 
     return images
 
+def get_cloud_storage_content(username, cloud_storage_id, manifest):
+    response = get_method(username, f'cloudstorages/{cloud_storage_id}/content', manifest_path=manifest)
+    data = json.loads(response.content.decode('utf-8'))
+    return data
+
 
 @pytest.mark.usefixtures('dontchangedb')
 class TestGetTasks:
@@ -263,12 +268,6 @@ class TestPostTaskData:
                 return response
             sleep(1)
 
-    @staticmethod
-    def _get_cloud_storage_content(username, cloud_storage_id, manifest):
-        response = get_method(username, f'cloudstorages/{cloud_storage_id}/content', manifest_path=manifest)
-        data = json.loads(response.content.decode('utf-8'))
-        return data
-
     def _test_create_task(self, username, spec, data, files, **kwargs):
         response = post_method(username, '/tasks', spec, **kwargs)
         assert response.status_code == HTTPStatus.CREATED
@@ -310,10 +309,10 @@ class TestPostTaskData:
 
     @pytest.mark.parametrize('cloud_storage_id, manifest, org', [
         (1, 'manifest.jsonl',         ''), # public bucket
-        (2, 'sub_dir/manifest.jsonl', 'org2'), # private bucket
+        (2, 'sub/manifest.jsonl', 'org2'), # private bucket
     ])
     def test_create_task_with_cloud_storage_files(self, cloud_storage_id, manifest, org):
-        cloud_storage_content = self._get_cloud_storage_content(self._USERNAME, cloud_storage_id, manifest)
+        cloud_storage_content = get_cloud_storage_content(self._USERNAME, cloud_storage_id, manifest)
         cloud_storage_content.append(manifest)
 
         task_spec = {
