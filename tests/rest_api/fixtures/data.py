@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Intel Corporation
+# Copyright (C) 2021-2022 Intel Corporation
 #
 # SPDX-License-Identifier: MIT
 
@@ -92,6 +92,14 @@ def jobs_by_org(tasks, jobs):
     data = {}
     for job in jobs:
         data.setdefault(tasks[job['task_id']]['organization'], []).append(job)
+    data[''] = data.pop(None, [])
+    return data
+
+@pytest.fixture(scope='session')
+def projects_by_org(projects):
+    data = {}
+    for project in projects:
+        data.setdefault(project['organization'], []).append(project)
     data[''] = data.pop(None, [])
     return data
 
