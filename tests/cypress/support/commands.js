@@ -217,7 +217,7 @@ Cypress.Commands.add(
             if (advancedConfigurationParams) {
                 cy.advancedConfiguration(advancedConfigurationParams);
             }
-            cy.contains('button', 'Submit and Continue').click();
+            cy.contains('button', 'Submit & Continue').click();
             if (expectedResult === 'success') {
                 cy.get('.cvat-notification-create-task-success').should('exist').find('[data-icon="close"]').click();
             }

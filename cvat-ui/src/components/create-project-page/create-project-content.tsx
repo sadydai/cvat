@@ -222,12 +222,12 @@ export default function CreateProjectContent(): JSX.Element {
                 <Row justify='end' gutter={5}>
                     <Col>
                         <Button type='primary' onClick={onSubmitAndOpen}>
-                            Submit and Open
+                            Submit & Open
                         </Button>
                     </Col>
                     <Col>
                         <Button type='primary' onClick={onSubmitAndContinue}>
-                            Submit and Continue
+                            Submit & Continue
                         </Button>
                     </Col>
                 </Row>

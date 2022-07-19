@@ -364,12 +364,12 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
             <Row justify='end' gutter={5}>
                 <Col>
                     <Button type='primary' onClick={this.handleSubmitAndOpen}>
-                        Submit and Open
+                        Submit & Open
                     </Button>
                 </Col>
                 <Col>
                     <Button type='primary' onClick={this.handleSubmitAndContinue}>
-                        Submit and Continue
+                        Submit & Continue
                     </Button>
                 </Col>
             </Row>
