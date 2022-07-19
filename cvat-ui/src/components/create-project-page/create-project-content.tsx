@@ -147,48 +147,48 @@ export default function CreateProjectContent(): JSX.Element {
     };
 
     const sumbit = async (): Promise<any> => {
-        let projectData: Record<string, any> = {};
-        if (nameFormRef.current && advancedFormRef.current) {
-            const basicValues = await nameFormRef.current.validateFields();
-            const advancedValues = await advancedFormRef.current.validateFields();
-            const adaptiveAutoAnnotationValues = await adaptiveAutoAnnotationFormRef.current?.validateFields();
-            projectData = {
-                ...projectData,
-                ...advancedValues,
-                name: basicValues.name,
-            };
+        try {
+            let projectData: Record<string, any> = {};
+            if (nameFormRef.current && advancedFormRef.current) {
+                const basicValues = await nameFormRef.current.validateFields();
+                const advancedValues = await advancedFormRef.current.validateFields();
+                const adaptiveAutoAnnotationValues = await adaptiveAutoAnnotationFormRef.current?.validateFields();
+                projectData = {
+                    ...projectData,
+                    ...advancedValues,
+                    name: basicValues.name,
+                };
 
-            if (adaptiveAutoAnnotationValues) {
-                projectData.training_project = { ...adaptiveAutoAnnotationValues };
+                if (adaptiveAutoAnnotationValues) {
+                    projectData.training_project = { ...adaptiveAutoAnnotationValues };
+                }
             }
+
+            projectData.labels = projectLabels;
+
+            const createdProject = await dispatch(createProjectAsync(projectData));
+            return createdProject;
+        } catch {
+            return false;
         }
-
-        projectData.labels = projectLabels;
-
-        const createdProject = await dispatch(createProjectAsync(projectData));
-        return createdProject;
     };
 
     const onSubmitAndOpen = async (): Promise<void> => {
-        try {
-            const createdProject = await sumbit();
+        const createdProject = await sumbit();
+        if (createdProject) {
             history.push(`/projects/${createdProject.id}`);
-        } catch {
-            // all hadnlers of error in onSumbit;
         }
     };
 
     const onSubmitAndContinue = async (): Promise<void> => {
-        try {
-            await sumbit();
+        const res = await sumbit();
+        if (res) {
             resetForm();
             notification.info({
                 message: 'The project has been created',
                 className: 'cvat-notification-create-project-success',
             });
             focusForm();
-        } catch {
-            // all hadnlers of error in onSumbit;
         }
     };
 
