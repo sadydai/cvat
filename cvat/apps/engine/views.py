@@ -1895,7 +1895,7 @@ class CloudStorageViewSet(viewsets.ModelViewSet):
                 location=OpenApiParameter.QUERY, type=OpenApiTypes.STR),
         ],
         responses={
-            '200': OpenApiResponse(response=OpenApiTypes.OBJECT, description='A manifest content'),
+            '200': OpenApiResponse(response=OpenApiTypes.BINARY, description='A manifest content'),
         })
     @action(detail=True, methods=['GET'], url_path='content')
     def content(self, request, pk):

@@ -12,7 +12,6 @@ from cvat_sdk.apis import TasksApi
 from cvat_sdk.models import DataRequest, RqStatus, TaskWriteRequest, PatchedTaskWriteRequest
 
 import pytest
-import json
 from deepdiff import DeepDiff
 from PIL import Image
 
@@ -39,7 +38,7 @@ def generate_image_files(count):
 def get_cloud_storage_content(username, cloud_storage_id, manifest):
     with make_api_client(username) as api_client:
         (_, response) = api_client.cloud_storages_api.cloudstorages_retrieve_content(cloud_storage_id, manifest_path=manifest)
-        data = json.loads(response.content.decode('utf-8'))
+        data = json.loads(response.data)
         return data
 
 
@@ -291,15 +290,14 @@ class TestPostTaskData:
                 return status
             sleep(1)
 
-    def _test_create_task(self, username, spec, data, client_files=None, **kwargs):
+    def _test_create_task(self, username, spec, data, content_type, **kwargs):
         with make_api_client(username) as api_client:
             (task, response) = api_client.tasks_api.create(TaskWriteRequest(**spec), **kwargs)
             assert response.status == HTTPStatus.CREATED
 
-            task_data = DataRequest(**data, client_files=list(client_files.values())) if \
-                client_files else DataRequest(**data)
+            task_data = DataRequest(**data)
             (_, response) = api_client.tasks_api.create_data(task.id, task_data,
-                _content_type="multipart/form-data", **kwargs)
+                _content_type=content_type, **kwargs)
             assert response.status == HTTPStatus.ACCEPTED
 
             status = self._wait_until_task_is_created(api_client.tasks_api, task.id)
@@ -328,13 +326,11 @@ class TestPostTaskData:
         task_data = {
             'image_quality': 75,
             'start_frame': 2,
-            'stop_frame': 5
-        }
-        task_files = {
-            f'client_files[{i}]': image for i, image in enumerate(generate_image_files(7))
+            'stop_frame': 5,
+            'client_files': generate_image_files(7),
         }
 
-        task_id = self._test_create_task(self._USERNAME, task_spec, task_data, task_files)
+        task_id = self._test_create_task(self._USERNAME, task_spec, task_data, content_type="multipart/form-data")
 
         # check task size
         with make_api_client(self._USERNAME) as api_client:
@@ -361,10 +357,7 @@ class TestPostTaskData:
             'use_cache': True,
             'storage': 'cloud_storage',
             'cloud_storage_id': cloud_storage_id,
+            'server_files': cloud_storage_content,
         }
 
-        data_spec.update({
-            f'server_files[{i}]': f for i, f in enumerate(cloud_storage_content)
-        })
-
-        _ = self._test_create_task(self._USERNAME, task_spec, data_spec, None, org=org)
+        _ = self._test_create_task(self._USERNAME, task_spec, data_spec, content_type="application/json", org=org)
