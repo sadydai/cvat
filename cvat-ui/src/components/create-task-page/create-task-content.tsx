@@ -172,7 +172,7 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
                 const { id } = createdTask;
                 history.push(`/tasks/${id}`);
             })
-            .catch();
+            .catch(() => {});
     };
 
     private handleSubmitAndContinue = (): void => {
@@ -185,7 +185,7 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
             })
             .then(this.resetState)
             .then(this.focusToForm)
-            .catch();
+            .catch(() => {});
     };
 
     private handleSubmit = (): Promise<any> => new Promise((resolve, reject) => {
@@ -393,7 +393,7 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
                 {this.renderFilesBlock()}
                 {this.renderAdvancedBlock()}
 
-                <Col span={24}>
+                <Col span={24} className='cvat-create-task-content-footer'>
                     {loading ? <Alert message={status} /> : this.renderActions()}
                 </Col>
             </Row>
