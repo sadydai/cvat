@@ -54,7 +54,12 @@ export default class LabelForm extends React.Component<Props> {
     };
 
     private handleSubmit = (values: Store): void => {
-        const { label, onSubmit } = this.props;
+        const { label, onSubmit, onCancel } = this.props;
+
+        if (!values.name) {
+            onCancel();
+            return;
+        }
 
         onSubmit({
             name: values.name,

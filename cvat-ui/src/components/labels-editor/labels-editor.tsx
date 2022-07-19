@@ -99,10 +99,6 @@ export default class LabelsEditor extends React.PureComponent<LabelsEditorProps,
     };
 
     private handleCreate = (label: Label): void => {
-        if (!label.name) {
-            this.setState({ constructorMode: ConstructorMode.SHOW });
-            return;
-        }
         const { unsavedLabels, savedLabels } = this.state;
         const newUnsavedLabels = [
             ...unsavedLabels,
