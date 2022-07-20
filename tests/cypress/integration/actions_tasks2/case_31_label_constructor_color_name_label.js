@@ -110,7 +110,7 @@ context('Label constructor. Color label. Label name editing', () => {
             cy.get('.cvat-change-task-label-color-button').click();
             cy.changeColorViaBadge(labelColor.yellowHex);
             cy.get('[placeholder="Label name"]').clear().type(colorYellow); // Check PR 2806
-            cy.contains('button', 'Continue').click();
+            cy.contains('button', 'Done').click();
         });
 
         it('Open the job. Existing objects with this label have changed their color and name.', () => {
