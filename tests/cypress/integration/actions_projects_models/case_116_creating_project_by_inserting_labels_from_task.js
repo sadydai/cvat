@@ -72,6 +72,9 @@ context('Creating a project by inserting labels from a task.', { browser: '!fire
             cy.contains('[role="tab"]', 'Constructor').click();
             cy.contains('.cvat-constructor-viewer-item', task.label).should('exist');
             cy.contains('button', 'Submit & Continue').click();
+            cy.get('.cvat-notification-create-project-success').should('exist').find('[data-icon="close"]').click();
+            cy.goToProjectsList();
+            cy.openProject(projectName);
             cy.contains('[role="tab"]', 'Raw').click();
             cy.get('.cvat-raw-labels-viewer').then((raw) => {
                 expect(raw.text()).contain('"id":');

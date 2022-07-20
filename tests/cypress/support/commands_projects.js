@@ -28,7 +28,7 @@ Cypress.Commands.add(
         }
         cy.contains('button', 'Continue').click();
         cy.get('.cvat-create-project-content').within(() => {
-            cy.contains('Submit & Continue').click();
+            cy.contains('button', 'Submit & Continue').click();
         });
         if (expectedResult === 'success') {
             cy.get('.cvat-notification-create-project-success').should('exist').find('[data-icon="close"]').click();
