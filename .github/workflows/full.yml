@@ -14,8 +14,8 @@ on:
         required: true
 
 env:
-  SERVER_IMAGE_TEST_REPO: ci_cvat_server
-  UI_IMAGE_TEST_REPO: ci_cvat_ui
+  SERVER_IMAGE_TEST_REPO: cvat_server
+  UI_IMAGE_TEST_REPO: cvat_ui
   WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:

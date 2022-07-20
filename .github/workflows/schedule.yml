@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  SERVER_IMAGE_TEST_REPO: ci_cvat_server
+  SERVER_IMAGE_TEST_REPO: cvat_server
   UI_IMAGE_TEST_REPO: instrumentation_cvat_ui
 
 jobs:

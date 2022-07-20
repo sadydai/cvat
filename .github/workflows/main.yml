@@ -11,8 +11,8 @@ on:
       - '**/*.md'
 
 env:
-  SERVER_IMAGE_TEST_REPO: ci_cvat_server
-  UI_IMAGE_TEST_REPO: ci_cvat_ui
+  SERVER_IMAGE_TEST_REPO: cvat_server
+  UI_IMAGE_TEST_REPO: cvat_ui
 
 jobs:
   search_cache:
